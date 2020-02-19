@@ -37,6 +37,7 @@ public class Window extends JFrame implements ActionListener {
 	private EmpireCanvas canvas;
 
 	private boolean running = false;
+	public static boolean hasSpawned = false;
 
 	public static BufferedImage originalMapImage;
 	public static BufferedImage mapImage;
@@ -163,6 +164,7 @@ public class Window extends JFrame implements ActionListener {
 					if (cb_percent.getSelectedIndex() > 0) {
 						canvas.resetBoard();
 						canvas.spawnRandomFill((Integer) cb_percent.getSelectedItem());
+						hasSpawned = true;
 						f.dispose();
 
 						// update buttons
@@ -177,6 +179,7 @@ public class Window extends JFrame implements ActionListener {
 			// spawn colonies in random positions
 			canvas.resetBoard();
 			canvas.spawnRandomColonies();
+			hasSpawned = true;
 
 			// update buttons
 			spawn.setEnabled(false);
@@ -185,6 +188,7 @@ public class Window extends JFrame implements ActionListener {
 		} else if (ae.getSource().equals(reset)) {
 			setRunning(false);
 			canvas.resetBoard();
+			hasSpawned = false;
 			canvas.repaint();
 
 			// update buttons

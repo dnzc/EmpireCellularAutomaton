@@ -37,15 +37,10 @@ public class Cell {
 	public void update() {
 		updated = true;
 		age++;
-		reproductionValue++;
-		if (diseased) {
+		if (diseased)
 			age += 0.5;
-		}
+		reproductionValue++;
 		if (!diseased && reproductionValue >= Config.REPRODUCTION_THRESHOLD) {
-			reproduce = true;
-			reproductionValue = 0;
-		}
-		if (diseased && reproductionValue >= Config.REPRODUCTION_THRESHOLD * 3) {
 			reproduce = true;
 			reproductionValue = 0;
 		}
@@ -55,16 +50,15 @@ public class Cell {
 
 	public Cell getOffspring() {
 		float newStrength = strength;
-		if (rng.nextInt(20) == 0) {
-			newStrength += (float) (rng.nextInt(3) - 1) * strength * 0.2f;
+		if (rng.nextInt(500) == 0) {
+			newStrength += (float) (rng.nextInt(5) - 1) * strength * 0.2f;
 		} else if (rng.nextInt(10) == 0) {
 			newStrength += (float) (rng.nextInt(3) - 1) * strength * 0.02f;
 		}
 		boolean newDiseased = diseased;
 		if (diseased && rng.nextInt(2) == 0) {
 			newDiseased = false;
-		}
-		if (!diseased && rng.nextInt(10) == 0) {
+		} else if (!diseased && rng.nextInt(1000) == 0) {
 			newDiseased = true;
 		}
 		return new Cell(x, y, colonyID, 0, newStrength, 0, true, newDiseased, false);

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import util.Config;
 import util.ImageUtils;
 import window.EmpireCanvas;
 import window.Window;
@@ -13,7 +14,10 @@ public class CellManager {
 
 	private static Random rng = new Random();
 
-	private static List<Point> dying = new ArrayList<>();
+	public static double[] totalStrength = new double[Config.COLONIES.length];
+	public static int[] populationCount = new int[Config.COLONIES.length];
+	private static double[] nextTotalStrength = new double[Config.COLONIES.length];
+	private static int[] nextPopulationCount = new int[Config.COLONIES.length];
 
 	private static int getNumForeignNeighbours(Cell cell) {
 		int count = 0;
@@ -56,17 +60,29 @@ public class CellManager {
 	public static void update() {
 		// Iterate through the array, apply rules
 
+		// init stats
+		for (int i = 0; i < Config.COLONIES.length; i++) {
+			nextTotalStrength[i] = 0;
+			nextPopulationCount[i] = 0;
+		}
+
 		for (int x = 0; x < Window.WORLD_WIDTH; x++) {
 			for (int y = 0; y < Window.WORLD_HEIGHT; y++) {
+
 				if (!EmpireCanvas.cells[x][y].isUpdated()) {
 
 					if (EmpireCanvas.cells[x][y].isAlive()) {
 						EmpireCanvas.cells[x][y].update();
 
-						// if surrounded by foreign colonies
-						if (getNumForeignNeighbours(EmpireCanvas.cells[x][y]) == 8) {
+						// high chance of disease
+						if (getNumForeignNeighbours(EmpireCanvas.cells[x][y]) >= 7) {
 							EmpireCanvas.cells[x][y].setDiseased(true);
+							;
 						}
+
+						// update stats
+						nextTotalStrength[EmpireCanvas.cells[x][y].getID()] += EmpireCanvas.cells[x][y].getStrength();
+						nextPopulationCount[EmpireCanvas.cells[x][y].getID()]++;
 
 						// try to move to a random position
 						int nextPos = rng.nextInt(9);
@@ -95,12 +111,13 @@ public class CellManager {
 								EmpireCanvas.cells[x][y] = EmpireCanvas.cells[x][y].getOffspring();
 								EmpireCanvas.cells[x][y].setReproduce(false);
 							} else
-								dying.add(new Point(x, y));
+								EmpireCanvas.cells[x][y].setAlive(false);
 						} else if (EmpireCanvas.cells[nextX][nextY].getID() != EmpireCanvas.cells[x][y].getID()) {
+
 							// fight - die if their strength greater, otherwise kill
 							if (EmpireCanvas.cells[nextX][nextY].getStrength() > EmpireCanvas.cells[x][y]
 									.getStrength()) {
-								dying.add(new Point(x, y));
+								EmpireCanvas.cells[x][y].setAlive(false);
 							} else {
 								// move i.e. copy all data
 								EmpireCanvas.cells[nextX][nextY] = new Cell(EmpireCanvas.cells[x][y].getX(),
@@ -116,20 +133,19 @@ public class CellManager {
 									EmpireCanvas.cells[x][y] = EmpireCanvas.cells[x][y].getOffspring();
 									EmpireCanvas.cells[x][y].setReproduce(false);
 								} else
-									dying.add(new Point(x, y));
+									EmpireCanvas.cells[x][y].setAlive(false);
 							}
 
 						}
-
 					}
+
 				}
 			}
 		}
 
-		for (Point p : dying) {
-			EmpireCanvas.cells[p.x][p.y].setAlive(false);
-		}
-		dying.clear();
+		// apply new stats
+		totalStrength = nextTotalStrength;
+		populationCount = nextPopulationCount;
 
 		for (int x = 0; x < Window.WORLD_WIDTH; x++) {
 			for (int y = 0; y < Window.WORLD_HEIGHT; y++) {

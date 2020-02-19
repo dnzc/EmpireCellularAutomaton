@@ -19,6 +19,6 @@ public class Config {
 
 	public static final Color MENU_BAR_COLOUR = new Color(30, 30, 30);
 
-	public static final int REPRODUCTION_THRESHOLD = 5;
+	public static final int REPRODUCTION_THRESHOLD = 3;
 
 }
