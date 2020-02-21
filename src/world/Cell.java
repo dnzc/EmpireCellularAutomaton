@@ -9,10 +9,10 @@ public class Cell {
 	private Random rng = new Random();
 
 	private int x, y, colonyID, age, reproductionValue;
-	private float strength;
+	private int strength;
 	private boolean alive = false;
-	private boolean diseased = false;
 	private boolean updated = false;
+	private boolean diseased = false;
 
 	private boolean reproduce = false;
 
@@ -21,47 +21,49 @@ public class Cell {
 		this.y = y;
 	}
 
-	public Cell(int x, int y, int colonyID, int age, float strength, int reproductionValue, boolean alive,
-			boolean diseased, boolean updated) {
+	public Cell(int x, int y, int colonyID, int age, int strength, int reproductionValue, boolean diseased,
+			boolean alive, boolean updated) {
 		this.x = x;
 		this.y = y;
 		this.colonyID = colonyID;
 		this.age = age;
 		this.strength = strength;
 		this.reproductionValue = reproductionValue;
-		this.alive = alive;
 		this.diseased = diseased;
+		this.alive = alive;
 		this.updated = updated;
 	}
 
 	public void update() {
 		updated = true;
 		age++;
+		reproductionValue++;
 		if (diseased)
 			age += 0.5;
-		reproductionValue++;
-		if (!diseased && reproductionValue >= Config.REPRODUCTION_THRESHOLD) {
+		if (reproductionValue >= (float) Config.REPRODUCTION_THRESHOLD * (rng.nextFloat() + 0.5f)) {
 			reproduce = true;
 			reproductionValue = 0;
 		}
 		if (age > strength)
-			setAlive(false);
+			alive = false;
 	}
 
 	public Cell getOffspring() {
-		float newStrength = strength;
-		if (rng.nextInt(500) == 0) {
-			newStrength += (float) (rng.nextInt(5) - 1) * strength * 0.2f;
-		} else if (rng.nextInt(10) == 0) {
-			newStrength += (float) (rng.nextInt(3) - 1) * strength * 0.02f;
-		}
+		int newStrength = strength;
 		boolean newDiseased = diseased;
-		if (diseased && rng.nextInt(2) == 0) {
-			newDiseased = false;
-		} else if (!diseased && rng.nextInt(1000) == 0) {
+
+		float mutation = rng.nextFloat() * 100;
+		if (mutation < Config.DISEASE_CHANCE) {
 			newDiseased = true;
+			newStrength *= 0.65;
+		} else if (mutation < Config.SMALL_MUTATION_CHANCE) {
+			newStrength *= rng.nextFloat();
 		}
-		return new Cell(x, y, colonyID, 0, newStrength, 0, true, newDiseased, false);
+
+		if (diseased && mutation < Config.DISEASE_CURED_CHANCE)
+			newDiseased = false;
+
+		return new Cell(x, y, colonyID, 0, newStrength, 0, newDiseased, true, false);
 	}
 
 	public int getX() {
@@ -96,11 +98,11 @@ public class Cell {
 		this.age = age;
 	}
 
-	public float getStrength() {
+	public int getStrength() {
 		return strength;
 	}
 
-	public void setStrength(float strength) {
+	public void setStrength(int strength) {
 		this.strength = strength;
 	}
 
@@ -112,20 +114,20 @@ public class Cell {
 		this.reproductionValue = reproductionValue;
 	}
 
-	public boolean isAlive() {
-		return alive;
-	}
-
-	public void setAlive(boolean alive) {
-		this.alive = alive;
-	}
-
 	public boolean isDiseased() {
 		return diseased;
 	}
 
 	public void setDiseased(boolean diseased) {
 		this.diseased = diseased;
+	}
+
+	public boolean isAlive() {
+		return alive;
+	}
+
+	public void setAlive(boolean alive) {
+		this.alive = alive;
 	}
 
 	public boolean isUpdated() {

@@ -19,6 +19,14 @@ public class Config {
 
 	public static final Color MENU_BAR_COLOUR = new Color(30, 30, 30);
 
-	public static final int REPRODUCTION_THRESHOLD = 3;
+	public static final int REPRODUCTION_THRESHOLD = 7;
+
+	public static final int MIN_START_STRENGTH = 450;
+	public static final int MAX_START_STRENGTH = 600;
+
+	// percentages
+	public static final float DISEASE_CHANCE = 0.1f;
+	public static final float DISEASE_CURED_CHANCE = 15f;
+	public static final float SMALL_MUTATION_CHANCE = 25f;
 
 }

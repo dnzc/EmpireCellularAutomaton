@@ -10,6 +10,7 @@ import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 import javax.swing.Timer;
 
@@ -22,8 +23,6 @@ import world.CellManager;
 public class EmpireCanvas extends JPanel {
 
 	private static final long serialVersionUID = 1L;
-
-	public static Cell[][] cells;
 
 	public Timer timer;
 
@@ -39,15 +38,15 @@ public class EmpireCanvas extends JPanel {
 	}
 
 	public void resetBoard() {
-		cells = new Cell[Window.WORLD_WIDTH][Window.WORLD_HEIGHT];
+		CellManager.cells = new Cell[Window.WORLD_WIDTH][Window.WORLD_HEIGHT];
 		for (int x = 0; x < Window.WORLD_WIDTH; x++) {
 			for (int y = 0; y < Window.WORLD_HEIGHT; y++) {
-				cells[x][y] = new Cell(x, y);
+				CellManager.cells[x][y] = new Cell(x, y);
 			}
 		}
 		for (int i = 0; i < Config.COLONIES.length; i++) {
-			CellManager.populationCount[i] = 0;
-			CellManager.totalStrength[i] = 0;
+			CellManager.populationCounts[i] = 0;
+			CellManager.totalStrengths[i] = 0;
 		}
 	}
 
@@ -59,9 +58,12 @@ public class EmpireCanvas extends JPanel {
 			for (int y = 0; y < Window.WORLD_HEIGHT; y++) {
 				if (!ImageUtils.isWater(x, y) && Math.random() * 100 < percent) {
 					int colony = rng.nextInt(Config.COLONIES.length);
-					cells[x][y] = new Cell(x, y, colony, 0, rng.nextInt(100), 0, true, false, false);
-					CellManager.populationCount[colony]++;
-					CellManager.totalStrength[colony] += cells[x][y].getStrength();
+					CellManager.cells[x][y] = new Cell(x, y, colony, 0,
+							rng.nextInt(Config.MAX_START_STRENGTH - Config.MIN_START_STRENGTH)
+									+ Config.MIN_START_STRENGTH,
+							0, false, true, false);
+					CellManager.populationCounts[colony]++;
+					CellManager.totalStrengths[colony] += CellManager.cells[x][y].getStrength();
 
 				}
 			}
@@ -91,13 +93,15 @@ public class EmpireCanvas extends JPanel {
 			for (int i = 0; i < 50; i++) {
 				int nextX = colonySpawnPos.x + rng.nextInt(15);
 				int nextY = colonySpawnPos.y + rng.nextInt(15);
-				while (cells[nextX][nextY].isAlive()) {
+				while (CellManager.cells[nextX][nextY].isAlive()) {
 					nextX = colonySpawnPos.x + rng.nextInt(15);
 					nextY = colonySpawnPos.y + rng.nextInt(15);
 				}
-				cells[nextX][nextY] = new Cell(nextX, nextY, colony, 0, rng.nextInt(100), 0, true, false, false);
-				CellManager.populationCount[colony]++;
-				CellManager.totalStrength[colony] += cells[nextX][nextY].getStrength();
+				CellManager.cells[nextX][nextY] = new Cell(nextX, nextY, colony, 0,
+						rng.nextInt(Config.MAX_START_STRENGTH - Config.MIN_START_STRENGTH) + Config.MIN_START_STRENGTH,
+						0, false, true, false);
+				CellManager.populationCounts[colony]++;
+				CellManager.totalStrengths[colony] += CellManager.cells[nextX][nextY].getStrength();
 			}
 		}
 	}
@@ -112,8 +116,8 @@ public class EmpireCanvas extends JPanel {
 		// paint world
 		for (int x = 0; x < Window.WORLD_WIDTH; x++) {
 			for (int y = 0; y < Window.WORLD_HEIGHT; y++) {
-				if (cells[x][y].isAlive()) {
-					g.setColor(Config.COLONIES[cells[x][y].getID()]);
+				if (CellManager.cells[x][y].isAlive()) {
+					g.setColor(Config.COLONIES[CellManager.cells[x][y].getID()]);
 					g.fillRect((int) (x * Window.SCALEX), (int) (y * Window.SCALEY), (int) Math.ceil(Window.SCALEX),
 							(int) Math.ceil(Window.SCALEY));
 				}
@@ -125,33 +129,41 @@ public class EmpireCanvas extends JPanel {
 
 			// get number of alive colonies
 			int numAliveColonies = 0;
-			for (int i : CellManager.populationCount) {
+			for (int i : CellManager.populationCounts) {
 				if (i != 0)
 					numAliveColonies++;
 			}
 
-			int displayHeight = 30;
-			g.setColor(new Color(200, 200, 200, 200));
-			g.fillRect(0, 0, 340, displayHeight * numAliveColonies);
-
+			int displayHeight = (int) (20 * Window.SCALEY);
 			int index = 0;
 			Font font = new Font("Arial", Font.BOLD, displayHeight / 2);
 			Graphics2D g2d = (Graphics2D) g;
 			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 			g2d.setFont(font);
 			FontMetrics metrics = getFontMetrics(font);
-			for (int i = 0; i < Config.COLONIES.length; i++) {
-				if (CellManager.populationCount[i] != 0) {
-					g2d.setColor(Config.COLONIES[i]);
+
+			g.setColor(new Color(200, 200, 200, 200));
+			g.fillRect(0, 0, (int) (210 * Window.SCALEY), displayHeight * numAliveColonies);
+
+			// sort colonies by population count
+			int[] sortedIndices = IntStream.range(0, CellManager.populationCounts.length).boxed()
+					.sorted((i, j) -> Integer.compare(CellManager.populationCounts[i], CellManager.populationCounts[j]))
+					.mapToInt(ele -> ele).toArray();
+
+			for (int i = Config.COLONIES.length - 1; i >= 0; i--) {
+				if (CellManager.populationCounts[sortedIndices[i]] != 0) {
+					g2d.setColor(Config.COLONIES[sortedIndices[i]]);
 					g2d.drawString(
-							"Colony " + i + ": pop " + Integer.toString(CellManager.populationCount[i])
+							"Colony " + sortedIndices[i] + ": pop " + CellManager.populationCounts[sortedIndices[i]]
 									+ ", avg. strength "
-									+ Integer.toString(
-											(int) (CellManager.totalStrength[i] / CellManager.populationCount[i])),
+									+ (int) (CellManager.totalStrengths[sortedIndices[i]]
+											/ CellManager.populationCounts[sortedIndices[i]]),
 							displayHeight / 4, displayHeight * index + metrics.getHeight());
 					index++;
 				}
+
 			}
+
 		}
 		repaint();
 	}
