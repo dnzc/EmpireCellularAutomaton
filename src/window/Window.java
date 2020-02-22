@@ -6,6 +6,8 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +38,8 @@ public class Window extends JFrame implements ActionListener {
 
 	private EmpireCanvas canvas;
 
+	public static boolean showStats = false;
+
 	private boolean running = false;
 	public static boolean hasSpawned = false;
 
@@ -65,7 +69,7 @@ public class Window extends JFrame implements ActionListener {
 		// swing
 		Window f = new Window();
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		f.setTitle(Config.TITLE);
+		f.setTitle("Empire");
 		f.setSize(Config.CANVAS_WIDTH, Config.CANVAS_HEIGHT + 95);
 		f.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - f.getWidth()) / 2,
 				(Toolkit.getDefaultToolkit().getScreenSize().height - f.getHeight()) / 2);
@@ -94,6 +98,22 @@ public class Window extends JFrame implements ActionListener {
 		spawn.add(spawnColonies);
 		toggle = new FlatJButton(Character.toString((char) 9658), new Color(50, 200, 50), Color.WHITE);
 		toggle.addActionListener(this);
+		toggle.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER)
+					showStats = !showStats;
+			}
+		});
 		toggle.setEnabled(false);
 		menu.add(new FlatJSeparator());
 		menu.add(new FlatJSeparator());

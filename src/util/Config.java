@@ -15,9 +15,12 @@ public class Config {
 			new Color(255, 0, 0), new Color(200, 200, 0), new Color(255, 0, 255), new Color(0, 200, 200),
 			new Color(120, 120, 120), new Color(255, 127, 0), new Color(100, 0, 100), new Color(0, 100, 0) };
 
-	public static final String TITLE = "Empire";
-
 	public static final Color MENU_BAR_COLOUR = new Color(30, 30, 30);
+
+	// whether cells in the same colony spread disease to each other
+	public static final boolean SPREAD_DISEASE = true;
+	// whether cells in the same colony move around each other - leads to more stable colonies if true
+	public static final boolean COLONY_DIFFUSION = false;
 
 	public static final int REPRODUCTION_THRESHOLD = 7;
 

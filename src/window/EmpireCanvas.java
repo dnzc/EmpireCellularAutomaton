@@ -26,6 +26,10 @@ public class EmpireCanvas extends JPanel {
 
 	public Timer timer;
 
+	private int statsHeight = (int) (0.04 * Config.CANVAS_HEIGHT);
+	private Font font = new Font("Arial", Font.BOLD, statsHeight / 2);
+	private FontMetrics metrics = getFontMetrics(font);
+
 	public EmpireCanvas() {
 		resetBoard();
 		timer = new Timer(Config.TIMER_STEP, new ActionListener() {
@@ -126,44 +130,49 @@ public class EmpireCanvas extends JPanel {
 
 		// paint stats
 		if (Window.hasSpawned) {
+			if (Window.showStats) {
 
-			// get number of alive colonies
-			int numAliveColonies = 0;
-			for (int i : CellManager.populationCounts) {
-				if (i != 0)
-					numAliveColonies++;
-			}
-
-			int displayHeight = (int) (20 * Window.SCALEY);
-			int index = 0;
-			Font font = new Font("Arial", Font.BOLD, displayHeight / 2);
-			Graphics2D g2d = (Graphics2D) g;
-			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-			g2d.setFont(font);
-			FontMetrics metrics = getFontMetrics(font);
-
-			g.setColor(new Color(200, 200, 200, 200));
-			g.fillRect(0, 0, (int) (210 * Window.SCALEY), displayHeight * numAliveColonies);
-
-			// sort colonies by population count
-			int[] sortedIndices = IntStream.range(0, CellManager.populationCounts.length).boxed()
-					.sorted((i, j) -> Integer.compare(CellManager.populationCounts[i], CellManager.populationCounts[j]))
-					.mapToInt(ele -> ele).toArray();
-
-			for (int i = Config.COLONIES.length - 1; i >= 0; i--) {
-				if (CellManager.populationCounts[sortedIndices[i]] != 0) {
-					g2d.setColor(Config.COLONIES[sortedIndices[i]]);
-					g2d.drawString(
-							"Colony " + sortedIndices[i] + ": pop " + CellManager.populationCounts[sortedIndices[i]]
-									+ ", avg. strength "
-									+ (int) (CellManager.totalStrengths[sortedIndices[i]]
-											/ CellManager.populationCounts[sortedIndices[i]]),
-							displayHeight / 4, displayHeight * index + metrics.getHeight());
-					index++;
+				// get number of alive colonies
+				int numAliveColonies = 0;
+				for (int i : CellManager.populationCounts) {
+					if (i != 0)
+						numAliveColonies++;
 				}
 
-			}
+				int index = 0;
+				Graphics2D g2d = (Graphics2D) g;
+				g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+				g2d.setFont(font);
 
+				g.setColor(new Color(200, 200, 200, 200));
+				g.fillRect(0, 0, (int) (0.2 * Config.CANVAS_WIDTH), statsHeight * numAliveColonies);
+
+				// sort colonies by population count
+				int[] sortedIndices = IntStream.range(0, CellManager.populationCounts.length).boxed().sorted(
+						(i, j) -> Integer.compare(CellManager.populationCounts[i], CellManager.populationCounts[j]))
+						.mapToInt(ele -> ele).toArray();
+
+				for (int i = Config.COLONIES.length - 1; i >= 0; i--) {
+					if (CellManager.populationCounts[sortedIndices[i]] != 0) {
+						g2d.setColor(Config.COLONIES[sortedIndices[i]]);
+						g2d.drawString(
+								"Colony " + sortedIndices[i] + ": pop " + CellManager.populationCounts[sortedIndices[i]]
+										+ ", avg. strength "
+										+ (int) (CellManager.totalStrengths[sortedIndices[i]]
+												/ CellManager.populationCounts[sortedIndices[i]]),
+								statsHeight / 4, statsHeight * index + metrics.getHeight());
+						index++;
+					}
+
+				}
+
+			} else {
+				g.setColor(Color.RED);
+				Graphics2D g2d = (Graphics2D) g;
+				g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+				g2d.setFont(font);
+				g2d.drawString("enter = toggle stats", 0, metrics.getAscent() - 1);
+			}
 		}
 		repaint();
 	}

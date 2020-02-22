@@ -77,18 +77,20 @@ public class CellManager {
 
 						} else if (cells[nextX][nextY].getID() == cells[x][y].getID()) {
 							// spread disease
-							if (cells[x][y].isDiseased())
+							if (Config.SPREAD_DISEASE && cells[x][y].isDiseased())
 								cells[nextX][nextY].setDiseased(true);
 
 							// swap data
-							Cell temp = new Cell(cells[x][y].getX(), cells[x][y].getY(), cells[x][y].getID(),
-									cells[x][y].getAge(), cells[x][y].getStrength(), cells[x][y].getReproductionValue(),
-									cells[x][y].isDiseased(), true, true);
-							cells[x][y] = new Cell(cells[nextX][nextY].getX(), cells[nextX][nextY].getY(),
-									cells[nextX][nextY].getID(), cells[nextX][nextY].getAge(),
-									cells[nextX][nextY].getStrength(), cells[nextX][nextY].getReproductionValue(),
-									cells[nextX][nextY].isDiseased(), true, false);
-							cells[nextX][nextY] = temp;
+							if (Config.COLONY_DIFFUSION) {
+								Cell temp = new Cell(cells[x][y].getX(), cells[x][y].getY(), cells[x][y].getID(),
+										cells[x][y].getAge(), cells[x][y].getStrength(),
+										cells[x][y].getReproductionValue(), cells[x][y].isDiseased(), true, true);
+								cells[x][y] = new Cell(cells[nextX][nextY].getX(), cells[nextX][nextY].getY(),
+										cells[nextX][nextY].getID(), cells[nextX][nextY].getAge(),
+										cells[nextX][nextY].getStrength(), cells[nextX][nextY].getReproductionValue(),
+										cells[nextX][nextY].isDiseased(), true, false);
+								cells[nextX][nextY] = temp;
+							}
 						}
 					}
 
